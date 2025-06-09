@@ -1,0 +1,78 @@
+NAMES_DICT = {
+"BSF-0" : "A1",
+"BSF-3" : "F1",
+"BSF-4" : "E1",
+"BSF-5" : "A2",
+"BSF-6" : "C1",
+"BSF-7" : "C2",
+"BSF-8" : "B1",
+"BSF-9" : "D1",
+"BSF-10" : "B2",
+"BSF-11" : "A3",
+"BSF-12" : "B3",
+"BSF-13" : "D3",
+"BSF-14" : "C3",
+"BSF-15" : "E3",
+"BSF-16" : "D2",
+"BSF-17" : "E2",
+"BSF-18" : "A5",
+"BSF-19" : "B5",
+"BSF-20" : "C5",
+"BSF-21" : "D5",
+"BSF-22" : "E5",
+"BSF-23" : "A6",
+"BSF-24" : "B6",
+"BSF-25" : "C6",
+"BSF-26" : "D6",
+"BSF-27" : "E6",
+"BSF-28" : "A7",
+"BSF-29" : "B7",
+"BSF-30" : "C7",
+"BSF-31" : "D7",
+"BSF-32" : "E7",
+"BSF-33" : "A4",
+"BSF-34" : "G1",
+"BSF-35" : "H1",
+"BSF-36" : "G2",
+"BSF-37" : "G3",
+"BSF-38" : "G5",
+"BSF-39" : "G6",
+"BSF-40" : "G7",
+"BSF-41" : "I1",
+"BSF-42" : "I2",
+"BSF-43" : "I3",
+"BSF-44" : "I5",
+"BSF-45" : "I6",
+"BSF-46" : "I7",
+"BSF-47" : "F2",
+"BSF-48" : "F3",
+"BSF-49" : "F5",
+"BSF-50" : "F6",
+"BSF-51" : "F7",
+"BSF-52" : "H2",
+"BSF-53" : "H3",
+"BSF-54" : "H5",
+"BSF-55" : "H6",
+"BSF-56" : "H7",
+}
+
+FUNCTIONALS = ('pbeh3c', 'r2scan3c', 'b3lyp', 'pbe0')
+FUNCTIONALS_DICT = {
+'pbeh3c' : "PBEh-3c",
+'r2scan3c' : "r2scan-3c",
+'b3lyp' : "B3LYP/def2-SVP",
+'pbe0' : "PBE0/def2-TZVP, CPCM(toluene)"
+}
+
+PARAMETERS = ('homo_energy', 'lumo_energy', 'homo_lumo_gap')
+PARAMETERS_DICT = {
+'homo_energy' : "HOMO energies, eV",
+'lumo_energy' : "LUMO energies, eV",
+'homo_lumo_gap' : "HOMO-LUMO gaps, eV",
+}
+
+CELL_COLORS_DICT = {
+    "homo_energy" : "FBD7E1",
+    "lumo_energy" : "C2F9DC",
+    "homo_lumo_gap" : "A5EEFF",
+}
