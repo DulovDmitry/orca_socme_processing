@@ -54,6 +54,14 @@ NAMES_DICT = {
 "BSF-54" : "H5",
 "BSF-55" : "H6",
 "BSF-56" : "H7",
+"BSF-57" : "",
+"BSF-58" : "",
+"BSF-59" : "",
+"BSF-60" : "",
+"BSF-61" : "",
+"BSF-62" : "",
+"BSF-63" : "",
+"BSF-64" : "",
 }
 
 FUNCTIONALS = ('pbeh3c', 'r2scan3c', 'b3lyp', 'pbe0')
@@ -64,15 +72,24 @@ FUNCTIONALS_DICT = {
 'pbe0' : "PBE0/def2-TZVP, CPCM(toluene)"
 }
 
-PARAMETERS = ('homo_energy', 'lumo_energy', 'homo_lumo_gap')
+HOMO_LUMO_PARAMETERS = ('homo_energy', 'lumo_energy', 'homo_lumo_gap')
+SINGLET_TRIPLET_PARAMETERS = ('S1_energy', 'T1_energy', 'delta_E_ST')
+SOCME_PARAMETERS = ('T1_S1_SOCME',)
 PARAMETERS_DICT = {
 'homo_energy' : "HOMO energies, eV",
 'lumo_energy' : "LUMO energies, eV",
 'homo_lumo_gap' : "HOMO-LUMO gaps, eV",
+'S1_energy' : "S1 energies, eV",
+'T1_energy' : "T1 energies, eV",
+'delta_E_ST' : "ΔE(S1-T1), eV",
+'T1_S1_SOCME' : "Spin-Orbit Coupling Matrix Element for S1 and T1, cm-1",
 }
 
 CELL_COLORS_DICT = {
-    "homo_energy" : "FBD7E1",
-    "lumo_energy" : "C2F9DC",
-    "homo_lumo_gap" : "A5EEFF",
+"homo_energy" : "FBD7E1",
+"lumo_energy" : "C2F9DC",
+"homo_lumo_gap" : "A5EEFF",
+'S1_energy' : "7DDAD9",
+'T1_energy' : "FCEAAF",
+'delta_E_ST' : "D7D7D7",
 }

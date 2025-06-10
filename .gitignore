@@ -1,3 +1,7 @@
 *.pdf
 *.txt
 *.out
+results_bak.xlsx
+.idea
+.venv
+__pycache__
