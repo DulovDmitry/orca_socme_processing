@@ -4,7 +4,7 @@ from socme import SocmeReader
 from my_collections import *
 from my_config import *
 
-import sys
+import logging
 import os
 import pandas as pd
 from openpyxl import load_workbook
@@ -12,8 +12,10 @@ from openpyxl.styles import Color, PatternFill
 
 database = DataBase()
 
+logging.basicConfig(level=logging.INFO , format="%(asctime)s - [%(levelname)s] - %(funcName)s - %(message)s")
 
 def fill_database_with_homo_lumo_data():
+	logging.info("Filling the database with HOMO and LUMO data")
 	homo_lumo_reader = HomoLumoReader()
 
 	for filename in os.listdir(OUTFILES_DIR):
@@ -38,9 +40,11 @@ def fill_database_with_homo_lumo_data():
 			continue
 
 		database.add_homo_lumo_data(long_name, short_name, functional, homo, lumo)
+	logging.info("The database has been filled with HOMO and LUMO data")
 
 
 def fill_excel_with_homo_lumo_data():
+	logging.info("Writing HOMO and LUMO data to the excel file")
 	for functional in FUNCTIONALS:
 		for parameter in HOMO_LUMO_PARAMETERS:
 			res = database.get_homo_lumo_data(functional, parameter)
@@ -53,9 +57,11 @@ def fill_excel_with_homo_lumo_data():
 
 			with pd.ExcelWriter(EXCEL_FILE_NAME, mode='a', if_sheet_exists='overlay') as writer:
 				df.to_excel(writer, sheet_name=sheet_name, index=False, header=False, startrow=4, startcol=2)
+	logging.info("HOMO and LUMO data has been written to the excel file")
 
 
 def fill_database_with_singlet_triplet_data():
+	logging.info("Filling the database with singlet and triplet data")
 	for filename in os.listdir(OUTFILES_DIR):
 		if not ".out" in filename:
 			continue
@@ -71,10 +77,12 @@ def fill_database_with_singlet_triplet_data():
 		short_name = NAMES_DICT[long_name]
 
 		socme_reader = SocmeReader(OUTFILES_DIR + filename)
-		database.add_singlet_triplet_data(long_name, short_name, "pbe0", socme_reader.S1_energy, socme_reader.T1_energy, socme_reader.delta_E_ST)
+		database.add_singlet_triplet_data(long_name, short_name, "pbe0", socme_reader.S1_energy, socme_reader.T1_energy, socme_reader.delta_E_S1_T1)
+	logging.info("The database has been filled with singlet and triplet data")
 
 
 def fill_excel_with_singlet_triplet_data():
+	logging.info("Writing singlet and triplet data to the excel file")
 	for functional in FUNCTIONALS:
 		for parameter in SINGLET_TRIPLET_PARAMETERS:
 			res = database.get_singlet_triplet_data(functional, parameter)
@@ -87,9 +95,11 @@ def fill_excel_with_singlet_triplet_data():
 
 			with pd.ExcelWriter(EXCEL_FILE_NAME, mode='a', if_sheet_exists='overlay') as writer:
 				df.to_excel(writer, sheet_name=sheet_name, index=False, header=False, startrow=4, startcol=2)
+	logging.info("singlet and triplet data has been written to the excel file")
 
 
 def fill_database_with_socme_data():
+	logging.info("Filling the database with SOCME data")
 	for filename in os.listdir(OUTFILES_DIR):
 		if not ".out" in filename:
 			continue
@@ -105,10 +115,16 @@ def fill_database_with_socme_data():
 		short_name = NAMES_DICT[long_name]
 
 		socme_reader = SocmeReader(OUTFILES_DIR + filename)
-		database.add_socme_data(long_name, short_name, "pbe0", socme_reader.T1_S1_SOCME)
+		database.add_socme_data(long_name, short_name, "pbe0", socme_reader.T1_S1_SOCME, socme_reader.T1_S2_SOCME)
+
+		# построение результирующего графика и сохранение в формате pdf
+		socme_reader.create_summary_plot(short_name)
+		socme_reader.save_summary_plot_as_pdf(short_name)
+	logging.info("The database has been filled with SOCME data")
 
 
 def fill_excel_with_socme_data():
+	logging.info("Writing SOCME data to the excel file")
 	for functional in FUNCTIONALS:
 		for parameter in SOCME_PARAMETERS:
 			res = database.get_socme_data(functional, parameter)
@@ -121,6 +137,7 @@ def fill_excel_with_socme_data():
 
 			with pd.ExcelWriter(EXCEL_FILE_NAME, mode='a', if_sheet_exists='overlay') as writer:
 				df.to_excel(writer, sheet_name=sheet_name, index=False, header=False, startrow=4, startcol=2)
+	logging.info("SOCME data has been written to the excel file")
 
 
 def get_dataframe_from_list_of_parameters(list_of_parameters):
@@ -132,6 +149,7 @@ def get_dataframe_from_list_of_parameters(list_of_parameters):
 
 
 def check_orca_version():
+	logging.info("Staring ORCA version check")
 	for filename in os.listdir(OUTFILES_DIR):
 		if not ".out" in filename:
 			continue
@@ -139,10 +157,12 @@ def check_orca_version():
 		with open(OUTFILES_DIR + filename, 'r') as file:
 			lines = file.readlines()
 			if not ('6.0.0' in lines[53] or '6.0.0' in lines[60]):
-				print(f"ORCA version is not 6.0.0 in the file {filename}")
+				logging.warning(f"ORCA version is not 6.0.0 in the file {filename}")
+	logging.info("ORCA version check done!")
 
 
 def check_geometry_convergence():
+	logging.info("Staring geometry convergence check")
 	for filename in os.listdir(OUTFILES_DIR):
 		if not ".out" in filename:
 			continue
@@ -160,7 +180,8 @@ def check_geometry_convergence():
 					break
 
 			if not flag:
-				print(f"Geometry did not converged: {filename}")
+				logging.warning(f"Geometry did not converged: {filename}")
+	logging.info("Geometry convergence check done!")
 
 
 def prepare_excel_sheet(functional, parameter):
@@ -181,12 +202,12 @@ def prepare_excel_sheet(functional, parameter):
 
 def main():
 	check_orca_version()
-	# check_geometry_convergence()
-	# fill_database_with_homo_lumo_data()
-	# fill_excel_with_homo_lumo_data()
-	# fill_database_with_singlet_triplet_data()
-	# fill_excel_with_singlet_triplet_data()
-	# fill_database_with_socme_data()
+	check_geometry_convergence()
+	fill_database_with_homo_lumo_data()
+	fill_excel_with_homo_lumo_data()
+	fill_database_with_singlet_triplet_data()
+	fill_excel_with_singlet_triplet_data()
+	fill_database_with_socme_data()
 	fill_excel_with_socme_data()
 
 if __name__ == "__main__":

@@ -76,3 +76,7 @@ class HomoLumoReader(object):
             print("Orbital energies has not been found in the file")
 
 
+if __name__ == "__main__":
+    print("__name__ == __main__")
+else:
+    print("homo lumo module has been imported")

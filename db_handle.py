@@ -36,7 +36,7 @@ class DataBase(object):
             functional TEXT NOT NULL,
             S1_energy REAL,
             T1_energy REAL,
-            delta_E_ST REAL,
+            delta_E_S1_T1 REAL,
             PRIMARY KEY (short_name, functional)
         )
         ''')
@@ -51,6 +51,7 @@ class DataBase(object):
             short_name TEXT NOT NULL,
             functional TEXT NOT NULL,
             T1_S1_SOCME REAL,
+            T1_S2_SOCME REAL,
             PRIMARY KEY (short_name, functional)
         )
         ''')
@@ -69,9 +70,9 @@ class DataBase(object):
         return self.cursor.fetchall()
 
 
-    def add_singlet_triplet_data(self, long_name: str, short_name: str, functional: str, S1_energy: float, T1_energy: float, delta_E_ST: float):
-        self.cursor.execute("INSERT OR REPLACE INTO singlet_triplet_data (long_name, short_name, functional, S1_energy, T1_energy, delta_E_ST) VALUES (?, ?, ?, ?, ?, ?)",
-                            (long_name, short_name, functional, S1_energy, T1_energy, delta_E_ST))
+    def add_singlet_triplet_data(self, long_name: str, short_name: str, functional: str, S1_energy: float, T1_energy: float, delta_E_S1_T1: float):
+        self.cursor.execute("INSERT OR REPLACE INTO singlet_triplet_data (long_name, short_name, functional, S1_energy, T1_energy, delta_E_S1_T1) VALUES (?, ?, ?, ?, ?, ?)",
+                            (long_name, short_name, functional, S1_energy, T1_energy, delta_E_S1_T1))
         self.conn.commit()
 
 
@@ -80,9 +81,9 @@ class DataBase(object):
         return self.cursor.fetchall()
 
 
-    def add_socme_data(self, long_name: str, short_name: str, functional: str, T1_S1_SOCME: float):
-        self.cursor.execute("INSERT OR REPLACE INTO socme_data (long_name, short_name, functional, T1_S1_SOCME) VALUES (?, ?, ?, ?)",
-                            (long_name, short_name, functional, T1_S1_SOCME))
+    def add_socme_data(self, long_name: str, short_name: str, functional: str, T1_S1_SOCME: float, T1_S2_SOCME: float):
+        self.cursor.execute("INSERT OR REPLACE INTO socme_data (long_name, short_name, functional, T1_S1_SOCME, T1_S2_SOCME) VALUES (?, ?, ?, ?, ?)",
+                            (long_name, short_name, functional, T1_S1_SOCME, T1_S2_SOCME))
         self.conn.commit()
 
 
