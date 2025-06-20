@@ -1,2 +1,5 @@
 OUTFILES_DIR = 'D:/Dima/BSF/outfiles/'
 EXCEL_FILE_NAME = 'results.xlsx'
+MULTIWNF_DISTANCE_FILE_NAME = 'general_out_distance.txt'
+MULTIWNF_INTEGRAL_NORM_FILE_NAME = 'general_out_integral_norm.txt'
+MULTIWNF_INTEGRAL_SQUARE_FILE_NAME = 'general_out_integral_square.txt'

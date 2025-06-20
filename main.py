@@ -1,6 +1,7 @@
 from db_handle import DataBase
 from homo_lumo_gap_from_orca import HomoLumoReader
 from socme import SocmeReader
+from multiwfn_data_reader import MultiwfnDataReader
 from my_collections import *
 from my_config import *
 
@@ -14,6 +15,10 @@ database = DataBase()
 
 logging.basicConfig(level=logging.INFO , format="%(asctime)s - [%(levelname)s] - %(funcName)s - %(message)s")
 
+
+'''
+The functions that fill database
+'''
 def fill_database_with_homo_lumo_data():
 	logging.info("Filling the database with HOMO and LUMO data")
 	homo_lumo_reader = HomoLumoReader()
@@ -42,24 +47,6 @@ def fill_database_with_homo_lumo_data():
 		database.add_homo_lumo_data(long_name, short_name, functional, homo, lumo)
 	logging.info("The database has been filled with HOMO and LUMO data")
 
-
-def fill_excel_with_homo_lumo_data():
-	logging.info("Writing HOMO and LUMO data to the excel file")
-	for functional in FUNCTIONALS:
-		for parameter in HOMO_LUMO_PARAMETERS:
-			res = database.get_homo_lumo_data(functional, parameter)
-			df = get_dataframe_from_list_of_parameters(res)
-
-			if len(df) == 0:
-				continue
-
-			sheet_name = prepare_excel_sheet(functional, parameter)
-
-			with pd.ExcelWriter(EXCEL_FILE_NAME, mode='a', if_sheet_exists='overlay') as writer:
-				df.to_excel(writer, sheet_name=sheet_name, index=False, header=False, startrow=4, startcol=2)
-	logging.info("HOMO and LUMO data has been written to the excel file")
-
-
 def fill_database_with_singlet_triplet_data():
 	logging.info("Filling the database with singlet and triplet data")
 	for filename in os.listdir(OUTFILES_DIR):
@@ -77,26 +64,14 @@ def fill_database_with_singlet_triplet_data():
 		short_name = NAMES_DICT[long_name]
 
 		socme_reader = SocmeReader(OUTFILES_DIR + filename)
-		database.add_singlet_triplet_data(long_name, short_name, "pbe0", socme_reader.S1_energy, socme_reader.T1_energy, socme_reader.delta_E_S1_T1)
+		database.add_singlet_triplet_data(long_name,
+										  short_name,
+										  "pbe0",
+										  socme_reader.S1_energy,
+										  socme_reader.T1_energy,
+										  socme_reader.delta_E_S1_T1,
+										  socme_reader.delta_E_S2_T1)
 	logging.info("The database has been filled with singlet and triplet data")
-
-
-def fill_excel_with_singlet_triplet_data():
-	logging.info("Writing singlet and triplet data to the excel file")
-	for functional in FUNCTIONALS:
-		for parameter in SINGLET_TRIPLET_PARAMETERS:
-			res = database.get_singlet_triplet_data(functional, parameter)
-			df = get_dataframe_from_list_of_parameters(res)
-
-			if len(df) == 0:
-				continue
-
-			sheet_name = prepare_excel_sheet(functional, parameter)
-
-			with pd.ExcelWriter(EXCEL_FILE_NAME, mode='a', if_sheet_exists='overlay') as writer:
-				df.to_excel(writer, sheet_name=sheet_name, index=False, header=False, startrow=4, startcol=2)
-	logging.info("singlet and triplet data has been written to the excel file")
-
 
 def fill_database_with_socme_data():
 	logging.info("Filling the database with SOCME data")
@@ -115,13 +90,68 @@ def fill_database_with_socme_data():
 		short_name = NAMES_DICT[long_name]
 
 		socme_reader = SocmeReader(OUTFILES_DIR + filename)
-		database.add_socme_data(long_name, short_name, "pbe0", socme_reader.T1_S1_SOCME, socme_reader.T1_S2_SOCME)
+		database.add_socme_data(long_name,
+								short_name,
+								"pbe0",
+								socme_reader.T1_S1_SOCME,
+								socme_reader.T1_S2_SOCME,
+								socme_reader.T1_S1_kRISC,
+								socme_reader.T1_S2_kRISC)
 
 		# построение результирующего графика и сохранение в формате pdf
-		socme_reader.create_summary_plot(short_name)
-		socme_reader.save_summary_plot_as_pdf(short_name)
+		# socme_reader.create_summary_plot(short_name)
+		# socme_reader.save_summary_plot_as_pdf(short_name)
 	logging.info("The database has been filled with SOCME data")
 
+def fill_database_with_multiwfn_data():
+	logging.info("Filling the database with multiwfn data")
+
+	mdr = MultiwfnDataReader()
+	df = mdr.general_df
+
+	for index, row in df.iterrows():
+		database.add_multiwfn_data(row['Short name'],
+								   row['Distance'],
+								   row['Integral norm'],
+								   row['Integral square'])
+
+	logging.info("The database has been filled with multiwfn data")
+
+
+'''
+The functions that write data to excel file
+'''
+def fill_excel_with_homo_lumo_data():
+	logging.info("Writing HOMO and LUMO data to the excel file")
+	for functional in FUNCTIONALS:
+		for parameter in HOMO_LUMO_PARAMETERS:
+			res = database.get_homo_lumo_data(functional, parameter)
+			df = get_dataframe_from_list_of_parameters(res)
+
+			if len(df) == 0:
+				continue
+
+			sheet_name = prepare_excel_sheet(functional, parameter)
+
+			with pd.ExcelWriter(EXCEL_FILE_NAME, mode='a', if_sheet_exists='overlay') as writer:
+				df.to_excel(writer, sheet_name=sheet_name, index=False, header=False, startrow=4, startcol=2)
+	logging.info("HOMO and LUMO data has been written to the excel file")
+
+def fill_excel_with_singlet_triplet_data():
+	logging.info("Writing singlet and triplet data to the excel file")
+	for functional in FUNCTIONALS:
+		for parameter in SINGLET_TRIPLET_PARAMETERS:
+			res = database.get_singlet_triplet_data(functional, parameter)
+			df = get_dataframe_from_list_of_parameters(res)
+
+			if len(df) == 0:
+				continue
+
+			sheet_name = prepare_excel_sheet(functional, parameter)
+
+			with pd.ExcelWriter(EXCEL_FILE_NAME, mode='a', if_sheet_exists='overlay') as writer:
+				df.to_excel(writer, sheet_name=sheet_name, index=False, header=False, startrow=4, startcol=2)
+	logging.info("singlet and triplet data has been written to the excel file")
 
 def fill_excel_with_socme_data():
 	logging.info("Writing SOCME data to the excel file")
@@ -139,14 +169,31 @@ def fill_excel_with_socme_data():
 				df.to_excel(writer, sheet_name=sheet_name, index=False, header=False, startrow=4, startcol=2)
 	logging.info("SOCME data has been written to the excel file")
 
+def fill_excel_with_multiwfn_data():
+	logging.info("Writing multiwfn data to the excel file")
+	for parameter in MULTIWFN_PARAMETERS:
+		res = database.get_multiwfn_data(parameter)
+		df = get_dataframe_from_list_of_parameters(res)
 
+		if len(df) == 0:
+			continue
+
+		sheet_name = prepare_excel_sheet("pbe0", parameter)
+
+		with pd.ExcelWriter(EXCEL_FILE_NAME, mode='a', if_sheet_exists='overlay') as writer:
+			df.to_excel(writer, sheet_name=sheet_name, index=False, header=False, startrow=4, startcol=2)
+	logging.info("SOCME data has been written to the excel file")
+
+
+'''
+Other functions
+'''
 def get_dataframe_from_list_of_parameters(list_of_parameters):
 	df = pd.DataFrame(list_of_parameters, columns=['Key', 'Value'])
 	df['Letter'] = df['Key'].str[0]
 	df['Number'] = df['Key'].str[1]
 	pivot_df = df.pivot(index='Number', columns='Letter', values='Value').sort_index().sort_index(axis=1)
 	return pivot_df
-
 
 def check_orca_version():
 	logging.info("Staring ORCA version check")
@@ -159,7 +206,6 @@ def check_orca_version():
 			if not ('6.0.0' in lines[53] or '6.0.0' in lines[60]):
 				logging.warning(f"ORCA version is not 6.0.0 in the file {filename}")
 	logging.info("ORCA version check done!")
-
 
 def check_geometry_convergence():
 	logging.info("Staring geometry convergence check")
@@ -183,7 +229,6 @@ def check_geometry_convergence():
 				logging.warning(f"Geometry did not converged: {filename}")
 	logging.info("Geometry convergence check done!")
 
-
 def prepare_excel_sheet(functional, parameter):
 	sheet_name = f'{functional} {parameter}'
 	wb = load_workbook(EXCEL_FILE_NAME)
@@ -199,16 +244,43 @@ def prepare_excel_sheet(functional, parameter):
 	wb.save(EXCEL_FILE_NAME)
 	return sheet_name
 
+def create_general_dataframe():
+	mdr = MultiwfnDataReader()
+	df = mdr.general_df
+
+	# add to the dataframe homo lumo data
+	tmp = pd.DataFrame(database.get_homo_lumo_data("pbe0", "homo_lumo_gap"), columns=['Short name', 'HOMO-LUMO gap'])
+	tmp.sort_values(by=['Short name'], inplace=True)
+	df = pd.merge(df, tmp, how="left", on=["Short name"])
+
+	# add to the dataframe singlet triplet data
+	tmp = pd.DataFrame(database.get_singlet_triplet_data("pbe0", "delta_E_S1_T1"), columns=['Short name', 'dE(S1-T1)'])
+	tmp.sort_values(by=['Short name'], inplace=True)
+	df = pd.merge(df, tmp, how="left", on=["Short name"])
+
+	# add to the dataframe socme data
+	tmp = pd.DataFrame(database.get_socme_data("pbe0", "T1_S1_SOCME"), columns=['Short name', 'SOCME S1-T1'])
+	tmp.sort_values(by=['Short name'], inplace=True)
+	df = pd.merge(df, tmp, how="left", on=["Short name"])
+
+	print(df.corr(numeric_only=True))
+
+def merge_df(df1, df2):
+	return pd.merge(df1,df2, how="left", on=["Short name"])
+
 
 def main():
-	check_orca_version()
-	check_geometry_convergence()
-	fill_database_with_homo_lumo_data()
-	fill_excel_with_homo_lumo_data()
-	fill_database_with_singlet_triplet_data()
-	fill_excel_with_singlet_triplet_data()
+	# check_orca_version()
+	# check_geometry_convergence()
+	# fill_database_with_homo_lumo_data()
+	# fill_excel_with_homo_lumo_data()
+	# fill_database_with_singlet_triplet_data()
+	# fill_excel_with_singlet_triplet_data()
 	fill_database_with_socme_data()
 	fill_excel_with_socme_data()
+	#fill_database_with_multiwfn_data()
+	# fill_excel_with_multiwfn_data()
+	# create_general_dataframe()
 
 if __name__ == "__main__":
 	main()

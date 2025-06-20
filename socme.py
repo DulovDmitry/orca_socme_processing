@@ -13,9 +13,9 @@ class SocmeReader:
         self.input_file_name = socme_filename
         self.initiate_constants()
 
-        self.triplet_levels_fragment = self.extract_fragment(socme_filename, self.triplet_levels_output_file, self.start_marker_triplets, self.end_marker_triplets)
-        self.singlet_levels_fragment = self.extract_fragment(socme_filename, self.singlet_levels_output_file, self.start_marker_singlets, self.end_marker_singlets)
-        self.socme_fragment = self.extract_fragment(socme_filename, self.socme_output_file, self.start_marker_socme, self.end_marker_socme)
+        self.triplet_levels_fragment = self.extract_fragment(socme_filename, self.start_marker_triplets, self.end_marker_triplets)
+        self.singlet_levels_fragment = self.extract_fragment(socme_filename, self.start_marker_singlets, self.end_marker_singlets)
+        self.socme_fragment = self.extract_fragment(socme_filename, self.start_marker_socme, self.end_marker_socme)
 
         self.process_singlet_levels_fragment()
         self.process_triplet_levels_fragment()
@@ -24,19 +24,16 @@ class SocmeReader:
         self.calculate_parameters()
 
     def initiate_constants(self):
-        self.triplet_levels_output_file = "triplet_levels.txt"
         self.start_marker_triplets = "TD-DFT/TDA EXCITED STATES (TRIPLETS)"
         self.end_marker_triplets = "\n\n---"
 
-        self.singlet_levels_output_file = "singlet_levels.txt"
         self.start_marker_singlets = "TD-DFT/TDA EXCITED STATES (SINGLETS)"
         self.end_marker_singlets = "***"
 
-        self.socme_output_file = "socme.txt"
         self.start_marker_socme = "CALCULATED SOCME BETWEEN TRIPLETS AND SINGLETS"
         self.end_marker_socme = "SOC stabilization of the ground state"
 
-    def extract_fragment(self, input_file, output_file, start_marker, end_marker):
+    def extract_fragment(self, input_file, start_marker, end_marker):
         """
         Извлекает фрагмент текста между start_marker и end_marker из input_file и сохраняет в output_file.
         """
@@ -58,12 +55,6 @@ class SocmeReader:
                 fragment = content[start_index:end_index].strip()
 
             return fragment
-
-            # with open(output_file, 'w', encoding='utf-8') as file:
-            #     file.write(fragment)
-            #
-            # print(f"Фрагмент успешно сохранён в {output_file}")
-
         except FileNotFoundError:
             print(f"Файл {input_file} не найден.")
         except Exception as e:
@@ -71,18 +62,18 @@ class SocmeReader:
 
     def calculate_parameters(self):
         self.delta_E_S1_T1 = self.S1_energy - self.T1_energy
+        self.delta_E_S2_T1 = self.S2_energy - self.T1_energy
         self.T1_S1_kRISC = self.T1_S1_SOCME_eV ** 2 * np.exp(-(self.delta_E_S1_T1 ** 2))
+        self.T1_S2_kRISC = self.T1_S2_SOCME_eV ** 2 * np.exp(-(self.delta_E_S2_T1 ** 2))
 
     def process_singlet_levels_fragment(self):
         try:
             # Извлечение данных и построение диаграммы
             states, energies_eV = self.extract_energy_levels(self.singlet_levels_fragment)
             self.singlet_levels_df = pd.DataFrame({'Number of state': states, 'Energy, eV': energies_eV})
-            self.S1_energy = min(energies_eV)
-
-            # plot_singlets_energy_diagram(states, energies_eV)
-        except FileNotFoundError:
-            print("Ошибка: файл 'your_file.txt' не найден.")
+            self.singlet_levels_df.sort_values(by=['Number of state'], inplace=True)
+            self.S1_energy = self.singlet_levels_df['Energy, eV'].get(0)
+            self.S2_energy = self.singlet_levels_df['Energy, eV'].get(1)
         except Exception as e:
             print(f"Произошла ошибка: {str(e)}")
 
@@ -94,10 +85,6 @@ class SocmeReader:
             states = [state - number_of_singlets for state in states]
             self.triplet_levels_df = pd.DataFrame({'Number of state': states, 'Energy, eV': energies_eV})
             self.T1_energy = min(energies_eV)
-
-            # plot_triplets_energy_diagram(states, energies_eV)
-        except FileNotFoundError:
-            print("Ошибка: файл 'your_file.txt' не найден.")
         except Exception as e:
             print(f"Произошла ошибка: {str(e)}")
 
@@ -219,10 +206,8 @@ class SocmeReader:
         # fig_filename = input_file_name_cut + "_result.pdf"
         # plt.savefig(fig_filename)
 
-
     def show_summary_plot(self):
         plt.show()
-
 
     def save_summary_plot_as_pdf(self, filename_for_saving=""):
         if filename_for_saving == "":
@@ -409,8 +394,8 @@ def main():
 
     socme_reader = SocmeReader(input_file_name)
     socme_reader.create_summary_plot()
-    # socme_reader.show_summary_plot()
-    socme_reader.save_summary_plot_as_pdf()
+    socme_reader.show_summary_plot()
+    # socme_reader.save_summary_plot_as_pdf()
 
 
 if __name__ == "__main__":

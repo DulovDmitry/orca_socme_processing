@@ -82,8 +82,9 @@ FUNCTIONALS_DICT = {
 }
 
 HOMO_LUMO_PARAMETERS = ('homo_energy', 'lumo_energy', 'homo_lumo_gap')
-SINGLET_TRIPLET_PARAMETERS = ('S1_energy', 'T1_energy', 'delta_E_S1_T1')
-SOCME_PARAMETERS = ('T1_S1_SOCME', 'T1_S2_SOCME',)
+SINGLET_TRIPLET_PARAMETERS = ('S1_energy', 'T1_energy', 'delta_E_S1_T1', 'delta_E_S2_T1')
+SOCME_PARAMETERS = ('T1_S1_SOCME', 'T1_S2_SOCME', 'T1_S1_kRISC', 'T1_S2_kRISC')
+MULTIWFN_PARAMETERS = ('distance', 'integral_norm', 'integral_square')
 PARAMETERS_DICT = {
 'homo_energy' : "HOMO energies, eV",
 'lumo_energy' : "LUMO energies, eV",
@@ -91,8 +92,14 @@ PARAMETERS_DICT = {
 'S1_energy' : "S1 energies, eV",
 'T1_energy' : "T1 energies, eV",
 'delta_E_S1_T1' : "ΔE(S1-T1), eV",
+'delta_E_S2_T1' : "ΔE(S2-T1), eV",
 'T1_S1_SOCME' : "Spin-Orbit Coupling between T1 and S1, cm-1",
 'T1_S2_SOCME' : "Spin-Orbit Coupling between T1 and S2, cm-1",
+'T1_S1_kRISC' : "(SOCME(T1-S1))^2*exp(-ΔE(S1-T1)^2)",
+'T1_S2_kRISC' : "(SOCME(T1-S2))^2*exp(-ΔE(S2-T1)^2)",
+'distance' : 'Distance between centroids of HOMO and LUMO',
+'integral_norm' : 'Overlap integral for module of HOMO and LUMO',
+'integral_square' : 'Overlap integral for squared HOMO and LUMO',
 }
 
 CELL_COLORS_DICT = {
