@@ -6,6 +6,7 @@ from matplotlib import gridspec
 import seaborn as sns
 import sys
 import pandas as pd
+from my_config import *
 
 
 class SocmeReader:
@@ -211,10 +212,10 @@ class SocmeReader:
 
     def save_summary_plot_as_pdf(self, filename_for_saving=""):
         if filename_for_saving == "":
-            fig_filename = "pdf_results/" + self.input_file_name_cut + "_result.pdf"
+            fig_filename = PDF_SAVE_DIR + self.input_file_name_cut + "_result.pdf"
             plt.savefig(fig_filename)
         else:
-            plt.savefig("pdf_results/" + filename_for_saving + "_result.pdf")
+            plt.savefig(PDF_SAVE_DIR + filename_for_saving + "_result.pdf")
 
 
 class PlotDrawer:
@@ -394,8 +395,18 @@ def main():
 
     socme_reader = SocmeReader(input_file_name)
     socme_reader.create_summary_plot()
-    socme_reader.show_summary_plot()
-    # socme_reader.save_summary_plot_as_pdf()
+
+    # print("delta_E_S1_T1", socme_reader.delta_E_S1_T1)
+    # print("delta_E_S2_T1", socme_reader.delta_E_S2_T1)
+
+    # print("T1_S1_SOCME", socme_reader.T1_S1_SOCME)
+    # print("T1_S2_SOCME", socme_reader.T1_S2_SOCME)    
+
+    # print("T1_S1_kRISC", socme_reader.T1_S1_kRISC)
+    # print("T1_S2_kRISC", socme_reader.T1_S2_kRISC)
+    
+    # socme_reader.show_summary_plot()
+    socme_reader.save_summary_plot_as_pdf()
 
 
 if __name__ == "__main__":

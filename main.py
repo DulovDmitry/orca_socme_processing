@@ -99,8 +99,8 @@ def fill_database_with_socme_data():
 								socme_reader.T1_S2_kRISC)
 
 		# построение результирующего графика и сохранение в формате pdf
-		# socme_reader.create_summary_plot(short_name)
-		# socme_reader.save_summary_plot_as_pdf(short_name)
+		socme_reader.create_summary_plot(short_name + "_half")
+		socme_reader.save_summary_plot_as_pdf(short_name + "_half")
 	logging.info("The database has been filled with SOCME data")
 
 def fill_database_with_multiwfn_data():
@@ -113,7 +113,11 @@ def fill_database_with_multiwfn_data():
 		database.add_multiwfn_data(row['Short name'],
 								   row['Distance'],
 								   row['Integral norm'],
-								   row['Integral square'])
+								   row['Integral square'],
+								   row['S1 HEOE'],
+								   row['S2 HEOE'],
+								   row['T1 HEOE'],
+								   row['T2 HEOE'])
 
 	logging.info("The database has been filled with multiwfn data")
 
@@ -182,7 +186,7 @@ def fill_excel_with_multiwfn_data():
 
 		with pd.ExcelWriter(EXCEL_FILE_NAME, mode='a', if_sheet_exists='overlay') as writer:
 			df.to_excel(writer, sheet_name=sheet_name, index=False, header=False, startrow=4, startcol=2)
-	logging.info("SOCME data has been written to the excel file")
+	logging.info("Multiwfn data has been written to the excel file")
 
 
 '''
@@ -258,27 +262,40 @@ def create_general_dataframe():
 	tmp.sort_values(by=['Short name'], inplace=True)
 	df = pd.merge(df, tmp, how="left", on=["Short name"])
 
+	tmp = pd.DataFrame(database.get_singlet_triplet_data("pbe0", "S1_energy"), columns=['Short name', 'S1 energy'])
+	tmp.sort_values(by=['Short name'], inplace=True)
+	df = pd.merge(df, tmp, how="left", on=["Short name"])
+
+	tmp = pd.DataFrame(database.get_singlet_triplet_data("pbe0", "T1_energy"), columns=['Short name', 'T1 energy'])
+	tmp.sort_values(by=['Short name'], inplace=True)
+	df = pd.merge(df, tmp, how="left", on=["Short name"])
+
 	# add to the dataframe socme data
 	tmp = pd.DataFrame(database.get_socme_data("pbe0", "T1_S1_SOCME"), columns=['Short name', 'SOCME S1-T1'])
 	tmp.sort_values(by=['Short name'], inplace=True)
 	df = pd.merge(df, tmp, how="left", on=["Short name"])
 
-	print(df.corr(numeric_only=True))
+	tmp = pd.DataFrame(database.get_socme_data("pbe0", "T1_S1_kRISC"), columns=['Short name', 'T1 S1 kRISC'])
+	tmp.sort_values(by=['Short name'], inplace=True)
+	df = pd.merge(df, tmp, how="left", on=["Short name"])
+
+	# print(df.corr(numeric_only=True))
+	df.to_csv(GENERAL_DATAFRAME_CSV_FILE_NAME, index=False)
 
 def merge_df(df1, df2):
 	return pd.merge(df1,df2, how="left", on=["Short name"])
 
 
 def main():
-	# check_orca_version()
-	# check_geometry_convergence()
-	# fill_database_with_homo_lumo_data()
-	# fill_excel_with_homo_lumo_data()
-	# fill_database_with_singlet_triplet_data()
-	# fill_excel_with_singlet_triplet_data()
+	check_orca_version()
+	check_geometry_convergence()
+	fill_database_with_homo_lumo_data()
+	fill_excel_with_homo_lumo_data()
+	fill_database_with_singlet_triplet_data()
+	fill_excel_with_singlet_triplet_data()
 	fill_database_with_socme_data()
 	fill_excel_with_socme_data()
-	#fill_database_with_multiwfn_data()
+	# fill_database_with_multiwfn_data()
 	# fill_excel_with_multiwfn_data()
 	# create_general_dataframe()
 

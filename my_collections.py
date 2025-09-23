@@ -84,7 +84,7 @@ FUNCTIONALS_DICT = {
 HOMO_LUMO_PARAMETERS = ('homo_energy', 'lumo_energy', 'homo_lumo_gap')
 SINGLET_TRIPLET_PARAMETERS = ('S1_energy', 'T1_energy', 'delta_E_S1_T1', 'delta_E_S2_T1')
 SOCME_PARAMETERS = ('T1_S1_SOCME', 'T1_S2_SOCME', 'T1_S1_kRISC', 'T1_S2_kRISC')
-MULTIWFN_PARAMETERS = ('distance', 'integral_norm', 'integral_square')
+MULTIWFN_PARAMETERS = ('distance', 'integral_norm', 'integral_square', 'S1_HEOE', 'S2_HEOE', 'T1_HEOE', 'T2_HEOE')
 PARAMETERS_DICT = {
 'homo_energy' : "HOMO energies, eV",
 'lumo_energy' : "LUMO energies, eV",
@@ -100,6 +100,10 @@ PARAMETERS_DICT = {
 'distance' : 'Distance between centroids of HOMO and LUMO',
 'integral_norm' : 'Overlap integral for module of HOMO and LUMO',
 'integral_square' : 'Overlap integral for squared HOMO and LUMO',
+'S1_HEOE' : "Hole-electron overlap extent in S1",
+'S2_HEOE' : 'Hole-electron overlap extent in S2',
+'T1_HEOE' : 'Hole-electron overlap extent in T1',
+'T2_HEOE' : 'Hole-electron overlap extent in T2',
 }
 
 CELL_COLORS_DICT = {

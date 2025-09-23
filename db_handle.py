@@ -1,9 +1,10 @@
 import sqlite3
+from my_config import *
 
 class DataBase(object):
 
     def __init__(self):
-        self.conn = sqlite3.connect('database.db')
+        self.conn = sqlite3.connect(DATABASE_FILE_NAME)
         self.cursor = self.conn.cursor()
         self.create_homo_lumo_data_table()
         self.create_singlet_triplet_data_table()
@@ -70,7 +71,11 @@ class DataBase(object):
             short_name TEXT PRIMARY KEY NOT NULL,
             distance REAL,
             integral_norm REAL,
-            integral_square REAL
+            integral_square REAL,
+            S1_HEOE REAL,
+            S2_HEOE REAL,
+            T1_HEOE REAL,
+            T2_HEOE REAL
         )
         ''')
 
@@ -95,9 +100,9 @@ class DataBase(object):
                             (long_name, short_name, functional, T1_S1_SOCME, T1_S2_SOCME, T1_S1_kRISC, T1_S2_kRISC))
         self.conn.commit()
 
-    def add_multiwfn_data(self, short_name: str, distance: float, integral_norm: float, integral_square: float):
-        self.cursor.execute("INSERT OR REPLACE INTO multiwfn_data (short_name, distance, integral_norm, integral_square) VALUES (?, ?, ?, ?)",
-                            (short_name, distance, integral_norm, integral_square))
+    def add_multiwfn_data(self, short_name: str, distance: float, integral_norm: float, integral_square: float, S1_HEOE: float, S2_HEOE: float, T1_HEOE: float, T2_HEOE: float):
+        self.cursor.execute("INSERT OR REPLACE INTO multiwfn_data (short_name, distance, integral_norm, integral_square, S1_HEOE, S2_HEOE, T1_HEOE, T2_HEOE) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                            (short_name, distance, integral_norm, integral_square, S1_HEOE, S2_HEOE, T1_HEOE, T2_HEOE))
         self.conn.commit()
 
     '''
