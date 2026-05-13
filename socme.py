@@ -162,53 +162,32 @@ class SocmeReader:
         self.T1_S2_SOCME = self.socme_matrix[1][2]
         self.T1_S2_SOCME_eV = self.T1_S2_SOCME * 1.23981e-4
 
+
     def create_summary_plot(self, plot_title=""):
         self.plot_drawer = PlotDrawer()
+
         self.plot_drawer.plot_heatmap(self.socme_matrix)
-        self.plot_drawer.plot_singlets_energy_diagram(self.singlet_levels_df['Number of state'].tolist(),
-                                     self.singlet_levels_df['Energy, eV'].tolist())
-        self.plot_drawer.plot_triplets_energy_diagram(self.triplet_levels_df['Number of state'].tolist(),
-                                     self.triplet_levels_df['Energy, eV'].tolist())
+
+        self.plot_drawer.plot_singlets_energy_diagram(self.singlet_levels_df['Number of state'].tolist(), self.singlet_levels_df['Energy, eV'].tolist())
+        self.plot_drawer.plot_triplets_energy_diagram(self.triplet_levels_df['Number of state'].tolist(), self.triplet_levels_df['Energy, eV'].tolist())
+
         self.plot_drawer.ax3.axis('off')
-
-        # Создаем таблицу с основными результатами
-        column_label = (
-            r"$S1, eV$",
-            r"$T1, eV$",
-            r"$ΔE_{ST}, eV$",
-            r"$|V_{SOC}|, cm^{-1}$",
-            r"$|V_{SOC}|^2 ⋅ exp[-(ΔE_{ST})^2]$")
-
-        cellText = [[
-            f"{self.S1_energy:.3f}",
-            f"{self.T1_energy:.3f}",
-            f"{self.delta_E_S1_T1:.3f}",
-            f"{self.T1_S1_SOCME:.3f}",
-            f"{self.T1_S1_kRISC:.2e}"]]
-
-        the_table = self.plot_drawer.ax3.table(cellText=cellText, colLabels=column_label, loc='center', cellLoc='center')
-        the_table.auto_set_font_size(False)
-        the_table.set_fontsize(13)
-        the_table.auto_set_column_width([0, 1, 2, 3, 4])
-
-        table_cells = the_table.get_celld()
-        for cell in table_cells:
-            table_cells[cell].PAD = 0.15
-            table_cells[cell].set_height(0.4)
+        self.plot_drawer.plot_S1_T1_table([self.S1_energy, self.T1_energy, self.delta_E_S1_T1, self.T1_S1_SOCME, self.T1_S1_kRISC])
+        self.plot_drawer.plot_S2_T1_table([self.S2_energy, self.T1_energy, self.delta_E_S2_T1, self.T1_S2_SOCME, self.T1_S2_kRISC])
 
         plt.tight_layout()
-        plt.subplots_adjust(left=0.05, right=0.95, top=0.85, bottom=0.1, wspace=0.2)
+        plt.subplots_adjust(left=0.06, right=0.96, top=0.85, bottom=0.1, wspace=0.2)
 
         self.input_file_name_cut = os.path.splitext(os.path.basename(self.input_file_name))[0]
         if plot_title == "":
             self.plot_drawer.fig.suptitle(self.input_file_name_cut, fontsize="20")
         else:
             self.plot_drawer.fig.suptitle(plot_title, fontsize="20")
-        # fig_filename = input_file_name_cut + "_result.pdf"
-        # plt.savefig(fig_filename)
+
 
     def show_summary_plot(self):
         plt.show()
+
 
     def save_summary_plot_as_pdf(self, filename_for_saving=""):
         if filename_for_saving == "":
@@ -222,7 +201,16 @@ class PlotDrawer:
     def __init__(self, ):
         # Настройки matplotlib
         scaling_factor = 1.2
-        self.fig = plt.figure(figsize=(16 * scaling_factor, 9 * scaling_factor))  # общий размер фигуры
+        # self.fig = plt.figure(figsize=(16 * scaling_factor, 9 * scaling_factor))  # общий размер фигуры
+        self.fig = plt.figure(figsize=(11.69, 8.27))  # размер A4
+
+        # # Создаем сетку
+        # self.gs = gridspec.GridSpec(2, 2, height_ratios=[5, 1])
+
+        # # Создаем субплоты
+        # self.ax1 = self.fig.add_subplot(self.gs[0:3])  # график heatmap
+        # self.ax2 = self.fig.add_subplot(self.gs[1])  # энергетическая диаграмма
+        # self.ax3 = self.fig.add_subplot(self.gs[3])  # таблица с основными параметрами
 
         # Создаем сетку
         self.gs = gridspec.GridSpec(2, 2, height_ratios=[5, 1])
@@ -261,22 +249,24 @@ class PlotDrawer:
         heatmap_ax = sns.heatmap(
             inverted_matrix,
             cmap='plasma',
-            annot=True,
+            annot=True,annot_kws={
+                "size": 8
+            }, 
             fmt='.2f',
-            linewidths=0.5,
+            linewidths=0.3,
             mask=inverted_mask,
             vmin=vmin,
             vmax=vmax,
             xticklabels=s_labels,
             yticklabels=inverted_t_labels,
             cbar=False,  # Это убирает цветовую шкалу
-            ax=self.ax1
+            ax=self.ax1,
         )
 
         # Настройки графика
         self.ax1.set_title(r'Spin-Orbit Coupling Matrix Elements, $cm^{-1}$', pad=20, fontsize=14)
-        self.ax1.set_xlabel('Singlet States', fontsize=12)
-        self.ax1.set_ylabel('Triplet States', fontsize=12)
+        self.ax1.set_xlabel('Singlet States', fontsize=12, labelpad=10)
+        self.ax1.set_ylabel('Triplet States', fontsize=12, labelpad=0)
 
         # Улучшаем читаемость подписей
         self.ax1.tick_params(axis='both', rotation=0, which='major', labelsize=10)
@@ -313,25 +303,25 @@ class PlotDrawer:
 
     def plot_singlets_energy_diagram(self, states, energies_eV):
         """
-        Строит диаграмму уровней энергии с интеллектуальным размещением подписей
+        Строит диаграмму уровней энергии с размещением подписей
         """
 
         # Фиксированная длина всех горизонтальных линий
-        line_length = 0.5
+        line_length = 0.4
 
         # Получаем оптимальные позиции для подписей
         energy_range = max(energies_eV) - min(energies_eV)
-        adjusted_positions, label_texts = self.smart_label_placement(energies_eV, states, "S", energy_range*0.05)
+        adjusted_positions, label_texts = self.smart_label_placement(energies_eV, states, "S", energy_range*0.06)
 
         # Рисуем горизонтальные линии одинаковой длины
         for i, energy in enumerate(energies_eV):
             # Основная линия уровня
             self.ax2.hlines(y=energy, xmin=0, xmax=line_length,
-                      color='blue', linewidth=2)
+                      color='blue', linewidth=1)
 
             # Подпись в формате "номер (энергия)"
             self.ax2.text(-0.1, adjusted_positions[i], label_texts[i],
-                    va='center', ha='right', fontsize=11,
+                    va='center', ha='right', fontsize=10,
                     bbox=dict(facecolor='white', edgecolor='none', pad=2, alpha=0.8))
 
             # Рисуем пунктирный указатель
@@ -353,25 +343,25 @@ class PlotDrawer:
 
     def plot_triplets_energy_diagram(self, states, energies_eV):
         """
-        Строит диаграмму уровней энергии с интеллектуальным размещением подписей
+        Строит диаграмму уровней энергии с размещением подписей
         """
 
         # Фиксированная длина всех горизонтальных линий
-        line_length = 0.5
+        line_length = 0.4
 
         # Получаем оптимальные позиции для подписей
         energy_range = (max(self.ax2.get_ylim()) - min(self.ax2.get_ylim()))/1.2
-        adjusted_positions, label_texts = self.smart_label_placement(energies_eV, states, "T", energy_range*0.05)
+        adjusted_positions, label_texts = self.smart_label_placement(energies_eV, states, "T", energy_range*0.06)
 
         # Рисуем горизонтальные линии одинаковой длины
         for i, energy in enumerate(energies_eV):
             # Основная линия уровня
             self.ax2.hlines(y=energy, xmin=1, xmax=1+line_length,
-                      color='red', linewidth=2)
+                      color='red', linewidth=1)
 
             # Подпись в формате "номер (энергия)"
             self.ax2.text(1.6, adjusted_positions[i], label_texts[i],
-                    va='center', ha='left', fontsize=11,
+                    va='center', ha='left', fontsize=10,
                     bbox=dict(facecolor='white', edgecolor='none', pad=2, alpha=0.8))
 
             # Рисуем пунктирный указатель
@@ -386,6 +376,82 @@ class PlotDrawer:
         self.ax2.set_ylim(ylim_min - 0.1*energy_range, ylim_max + 0.1*energy_range)
 
 
+    def plot_S1_T1_table(self, parameters):
+        # Создаем таблицу с основными результатами
+        S1_energy = parameters[0]
+        T1_energy = parameters[1]
+        delta_E_S1_T1 = parameters[2]
+        T1_S1_SOCME = parameters[3]
+        T1_S1_kRISC = parameters[4]
+
+        column_label = (
+            r"$S1, eV$",
+            r"$T1, eV$",
+            r"$ΔE_{ST}, eV$",
+            r"$|H_{SOC}|, cm^{-1}$",
+            r"$|H_{SOC}|^2 ⋅ exp[-(ΔE_{ST})^2]$")
+
+        cellText = [[
+            f"{S1_energy:.3f}",
+            f"{T1_energy:.3f}",
+            f"{delta_E_S1_T1:.3f}",
+            f"{T1_S1_SOCME:.3f}",
+            f"{T1_S1_kRISC:.2e}"]]
+
+        the_table = self.ax3.table(
+            cellText=cellText, 
+            colLabels=column_label, 
+            cellLoc='center',
+            bbox=[0.0, 0.45, 1.0, 0.6])
+
+        the_table.auto_set_font_size(False)
+        the_table.set_fontsize(10)
+        the_table.auto_set_column_width([0, 1, 2, 3, 4]) # автоширина для всех колонок
+
+        table_cells = the_table.get_celld()
+        for cell in table_cells:
+            table_cells[cell].PAD = 0.11
+            table_cells[cell].set_linewidth(0.8)
+
+
+    def plot_S2_T1_table(self, parameters):
+        # Создаем таблицу с основными результатами
+        S2_energy = parameters[0]
+        T1_energy = parameters[1]
+        delta_E_S2_T1 = parameters[2]
+        T1_S2_SOCME = parameters[3]
+        T1_S2_kRISC = parameters[4]
+
+        column_label = (
+            r"$S2, eV$",
+            r"$T1, eV$",
+            r"$ΔE_{ST}, eV$",
+            r"$|H_{SOC}|, cm^{-1}$",
+            r"$|H_{SOC}|^2 ⋅ exp[-(ΔE_{ST})^2]$")
+
+        cellText = [[
+            f"{S2_energy:.3f}",
+            f"{T1_energy:.3f}",
+            f"{delta_E_S2_T1:.3f}",
+            f"{T1_S2_SOCME:.3f}",
+            f"{T1_S2_kRISC:.2e}"]]
+
+        the_table = self.ax3.table(
+            cellText=cellText, 
+            colLabels=column_label, 
+            cellLoc='center',
+            bbox=[0.0, -0.3, 1.0, 0.6])
+
+        the_table.auto_set_font_size(False)
+        the_table.set_fontsize(10)
+        the_table.auto_set_column_width([0, 1, 2, 3, 4]) # автоширина для всех колонок
+
+        table_cells = the_table.get_celld()
+        for cell in table_cells:
+            table_cells[cell].PAD = 0.11
+            table_cells[cell].set_linewidth(0.8)
+
+
 def main():
     if len(sys.argv) < 2:
         print("Usage: python.exe socme.py <input_file>")
@@ -395,18 +461,22 @@ def main():
 
     socme_reader = SocmeReader(input_file_name)
     socme_reader.create_summary_plot()
-
-    # print("delta_E_S1_T1", socme_reader.delta_E_S1_T1)
-    # print("delta_E_S2_T1", socme_reader.delta_E_S2_T1)
-
-    # print("T1_S1_SOCME", socme_reader.T1_S1_SOCME)
-    # print("T1_S2_SOCME", socme_reader.T1_S2_SOCME)    
-
-    # print("T1_S1_kRISC", socme_reader.T1_S1_kRISC)
-    # print("T1_S2_kRISC", socme_reader.T1_S2_kRISC)
     
+    ### Если нужно посмотреть результат во всплывающем окне
     # socme_reader.show_summary_plot()
+
+    ### Если нужно сохранить результат в pdf файл (в папку PDF_SAVE_DIR из my_config.py)
     socme_reader.save_summary_plot_as_pdf()
+
+    ### Вывод в консоль некоторых энергетических параметров
+    print(f"ΔE(S1-T1) = {socme_reader.delta_E_S1_T1:.4f}")
+    print(f"ΔE(S2-T1) = {socme_reader.delta_E_S2_T1:.4f}")
+
+    print(f"T1-S1 SOCME = {socme_reader.T1_S1_SOCME:.4f}")
+    print(f"T1-S2 SOCME = {socme_reader.T1_S2_SOCME:.4f}")    
+
+    print(f"T1-S1 kRISC = {socme_reader.T1_S1_kRISC:.2e}")
+    print(f"T1-S2 kRISC = {socme_reader.T1_S2_kRISC:.2e}")
 
 
 if __name__ == "__main__":
