@@ -64,6 +64,9 @@ class SocmeReader:
     def calculate_parameters(self):
         self.delta_E_S1_T1 = self.S1_energy - self.T1_energy
         self.delta_E_S2_T1 = self.S2_energy - self.T1_energy
+        self.delta_E_T1_T2 = self.T2_energy - self.T1_energy
+        self.delta_E_S1_S2 = self.S2_energy - self.S1_energy
+
         self.T1_S1_kRISC = self.T1_S1_SOCME_eV ** 2 * np.exp(-(self.delta_E_S1_T1 ** 2))
         self.T1_S2_kRISC = self.T1_S2_SOCME_eV ** 2 * np.exp(-(self.delta_E_S2_T1 ** 2))
 
@@ -85,7 +88,9 @@ class SocmeReader:
             number_of_singlets = min(states) - 1
             states = [state - number_of_singlets for state in states]
             self.triplet_levels_df = pd.DataFrame({'Number of state': states, 'Energy, eV': energies_eV})
-            self.T1_energy = min(energies_eV)
+            self.triplet_levels_df.sort_values(by=['Number of state'], inplace=True)
+            self.T1_energy = self.triplet_levels_df['Energy, eV'].get(0)
+            self.T2_energy = self.triplet_levels_df['Energy, eV'].get(1)
         except Exception as e:
             print(f"Произошла ошибка: {str(e)}")
 
@@ -471,6 +476,8 @@ def main():
     ### Вывод в консоль некоторых энергетических параметров
     print(f"ΔE(S1-T1) = {socme_reader.delta_E_S1_T1:.4f}")
     print(f"ΔE(S2-T1) = {socme_reader.delta_E_S2_T1:.4f}")
+    print(f"ΔE(S1-S2) = {socme_reader.delta_E_S1_S2:.4f}")
+    print(f"ΔE(T1-T2) = {socme_reader.delta_E_T1_T2:.4f}")
 
     print(f"T1-S1 SOCME = {socme_reader.T1_S1_SOCME:.4f}")
     print(f"T1-S2 SOCME = {socme_reader.T1_S2_SOCME:.4f}")    

@@ -70,7 +70,9 @@ def fill_database_with_singlet_triplet_data():
 										  socme_reader.S1_energy,
 										  socme_reader.T1_energy,
 										  socme_reader.delta_E_S1_T1,
-										  socme_reader.delta_E_S2_T1)
+										  socme_reader.delta_E_S2_T1,
+										  socme_reader.delta_E_S1_S2,
+										  socme_reader.delta_E_T1_T2)
 	logging.info("The database has been filled with singlet and triplet data")
 
 def fill_database_with_socme_data():
@@ -99,8 +101,8 @@ def fill_database_with_socme_data():
 								socme_reader.T1_S2_kRISC)
 
 		# построение результирующего графика и сохранение в формате pdf
-		socme_reader.create_summary_plot(short_name + "_half")
-		socme_reader.save_summary_plot_as_pdf(short_name + "_half")
+		socme_reader.create_summary_plot(short_name + PDF_FILENAME_SUFFIX)
+		socme_reader.save_summary_plot_as_pdf(short_name + PDF_FILENAME_SUFFIX)
 	logging.info("The database has been filled with SOCME data")
 
 def fill_database_with_multiwfn_data():
@@ -287,14 +289,17 @@ def merge_df(df1, df2):
 
 
 def main():
+	# !!! Перед запуском программы нужно убедиться, что обрабатываются правильные файлы (BSF или BSF_cut)
+	# Проверить это можно в my_config.py
+
 	check_orca_version()
 	check_geometry_convergence()
-	fill_database_with_homo_lumo_data()
-	fill_excel_with_homo_lumo_data()
-	fill_database_with_singlet_triplet_data()
-	fill_excel_with_singlet_triplet_data()
+	# fill_database_with_homo_lumo_data()
+	# fill_excel_with_homo_lumo_data()
+	# fill_database_with_singlet_triplet_data()
+	# fill_excel_with_singlet_triplet_data()
 	fill_database_with_socme_data()
-	fill_excel_with_socme_data()
+	# fill_excel_with_socme_data()
 	# fill_database_with_multiwfn_data()
 	# fill_excel_with_multiwfn_data()
 	# create_general_dataframe()
