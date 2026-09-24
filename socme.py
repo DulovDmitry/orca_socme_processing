@@ -70,6 +70,12 @@ class SocmeReader:
         self.T1_S1_kRISC = self.T1_S1_SOCME_eV ** 2 * np.exp(-(self.delta_E_S1_T1 ** 2))
         self.T1_S2_kRISC = self.T1_S2_SOCME_eV ** 2 * np.exp(-(self.delta_E_S2_T1 ** 2))
 
+        all_energies = pd.concat([
+            self.singlet_levels_df['Energy, eV'],
+            self.triplet_levels_df['Energy, eV']
+        ])
+        self.energy_range = all_energies.max() - all_energies.min()
+
     def process_singlet_levels_fragment(self):
         try:
             # Извлечение данных и построение диаграммы
@@ -173,8 +179,8 @@ class SocmeReader:
 
         self.plot_drawer.plot_heatmap(self.socme_matrix)
 
-        self.plot_drawer.plot_singlets_energy_diagram(self.singlet_levels_df['Number of state'].tolist(), self.singlet_levels_df['Energy, eV'].tolist())
-        self.plot_drawer.plot_triplets_energy_diagram(self.triplet_levels_df['Number of state'].tolist(), self.triplet_levels_df['Energy, eV'].tolist())
+        self.plot_drawer.plot_singlets_energy_diagram(self.singlet_levels_df['Number of state'].tolist(), self.singlet_levels_df['Energy, eV'].tolist(), self.energy_range)
+        self.plot_drawer.plot_triplets_energy_diagram(self.triplet_levels_df['Number of state'].tolist(), self.triplet_levels_df['Energy, eV'].tolist(), self.energy_range)
 
         self.plot_drawer.ax3.axis('off')
         self.plot_drawer.plot_S1_T1_table([self.S1_energy, self.T1_energy, self.delta_E_S1_T1, self.T1_S1_SOCME, self.T1_S1_kRISC])
@@ -226,27 +232,30 @@ class PlotDrawer:
         self.ax3 = self.fig.add_subplot(self.gs[3])  # таблица с основными параметрами
 
     def plot_heatmap(self, matrix):
+        # Убираем столбец S0 (индекс 0) из данных до отрисовки
+        matrix_no_s0 = matrix[:, 1:]
+
         # Маскируем нулевые значения
-        # mask = matrix == 0
+        # mask = matrix_no_s0 == 0
 
         # Не маскируем нулевые значения
-        mask = matrix == -1
+        mask = matrix_no_s0 == -1
 
         # Находим минимальное и максимальное ненулевые значения
-        non_zero_values = matrix[matrix > 0]
+        non_zero_values = matrix_no_s0[matrix_no_s0 > 0]
         if len(non_zero_values) == 0:
             print("No non-zero values found in the matrix!")
             return
 
         vmin = np.min(non_zero_values)
-        vmax = np.max(matrix)
+        vmax = np.max(matrix_no_s0)
 
-        # Создаем подписи для осей
-        s_labels = [f'S{i}' for i in range(matrix.shape[1])]
+        # Создаем подписи для осей (S начинается с 1, так как S0 исключён)
+        s_labels = [f'S{i}' for i in range(1, matrix.shape[1])]
         t_labels = [f'T{i}' for i in range(1, matrix.shape[0])]  # T начинается с 1
 
         # Инвертируем матрицу по вертикали, чтобы T1 был снизу
-        inverted_matrix = np.flipud(matrix[1:,:])
+        inverted_matrix = np.flipud(matrix_no_s0[1:,:])
         inverted_mask = np.flipud(mask[1:,:])
         inverted_t_labels = t_labels[::-1]  # Инвертируем порядок меток
 
@@ -277,7 +286,7 @@ class PlotDrawer:
         self.ax1.tick_params(axis='both', rotation=0, which='major', labelsize=10)
 
 
-    def smart_label_placement(self, energies, labels, state_letter, min_spacing=0.03):
+    def smart_label_placement(self, energies, labels, state_letter, min_spacing=0.02):
         """
         Умное размещение подписей с автоматическим смещением
         """
@@ -291,7 +300,6 @@ class PlotDrawer:
         sorted_texts = [label_texts[i] for i in sorted_indices]
 
         # Применяем алгоритм смещения
-        min_spacing = max(0.03, min_spacing)
         for i in range(1, n):
             if sorted_positions[i] - sorted_positions[i-1] < min_spacing:
                 sorted_positions[i] = sorted_positions[i-1] + min_spacing
@@ -306,7 +314,7 @@ class PlotDrawer:
         return result_positions, result_texts
 
 
-    def plot_singlets_energy_diagram(self, states, energies_eV):
+    def plot_singlets_energy_diagram(self, states, energies_eV, energy_range):
         """
         Строит диаграмму уровней энергии с размещением подписей
         """
@@ -315,8 +323,10 @@ class PlotDrawer:
         line_length = 0.4
 
         # Получаем оптимальные позиции для подписей
-        energy_range = max(energies_eV) - min(energies_eV)
-        adjusted_positions, label_texts = self.smart_label_placement(energies_eV, states, "S", energy_range*0.06)
+        energy_diagram_height_inches = 5.12
+        min_labels_spacing_inches = 0.26
+        labels_spacing = energy_range*min_labels_spacing_inches/energy_diagram_height_inches
+        adjusted_positions, label_texts = self.smart_label_placement(energies_eV, states, "S", labels_spacing)
 
         # Рисуем горизонтальные линии одинаковой длины
         for i, energy in enumerate(energies_eV):
@@ -346,7 +356,7 @@ class PlotDrawer:
         self.ax2.grid(axis='y', linestyle=':', alpha=0.4)
 
 
-    def plot_triplets_energy_diagram(self, states, energies_eV):
+    def plot_triplets_energy_diagram(self, states, energies_eV, energy_range):
         """
         Строит диаграмму уровней энергии с размещением подписей
         """
@@ -355,8 +365,10 @@ class PlotDrawer:
         line_length = 0.4
 
         # Получаем оптимальные позиции для подписей
-        energy_range = (max(self.ax2.get_ylim()) - min(self.ax2.get_ylim()))/1.2
-        adjusted_positions, label_texts = self.smart_label_placement(energies_eV, states, "T", energy_range*0.06)
+        energy_diagram_height_inches = 5.12
+        min_labels_spacing_inches = 0.26
+        labels_spacing = energy_range*min_labels_spacing_inches/energy_diagram_height_inches
+        adjusted_positions, label_texts = self.smart_label_placement(energies_eV, states, "T", labels_spacing)
 
         # Рисуем горизонтальные линии одинаковой длины
         for i, energy in enumerate(energies_eV):
@@ -459,19 +471,22 @@ class PlotDrawer:
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python.exe socme.py <input_file>")
+        print("Usage: python.exe socme.py <input_file> <save_name>")
         sys.exit(1)
 
     input_file_name = sys.argv[1]
+    savename = ""
+    if len(sys.argv) == 3:
+        savename = sys.argv[2]
 
     socme_reader = SocmeReader(input_file_name)
-    socme_reader.create_summary_plot()
+    socme_reader.create_summary_plot(savename)
     
     ### Если нужно посмотреть результат во всплывающем окне
     # socme_reader.show_summary_plot()
 
     ### Если нужно сохранить результат в pdf файл (в папку PDF_SAVE_DIR из my_config.py)
-    socme_reader.save_summary_plot_as_pdf()
+    socme_reader.save_summary_plot_as_pdf(savename)
 
     ### Вывод в консоль некоторых энергетических параметров
     print(f"ΔE(S1-T1) = {socme_reader.delta_E_S1_T1:.4f}")
