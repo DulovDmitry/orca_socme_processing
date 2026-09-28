@@ -69,6 +69,8 @@ def fill_database_with_singlet_triplet_data():
 										  "pbe0",
 										  socme_reader.S1_energy,
 										  socme_reader.T1_energy,
+										  socme_reader.S2_energy,
+										  socme_reader.T2_energy,
 										  socme_reader.delta_E_S1_T1,
 										  socme_reader.delta_E_S2_T1,
 										  socme_reader.delta_E_S1_S2,
@@ -296,9 +298,9 @@ def main():
 	check_geometry_convergence()
 	# fill_database_with_homo_lumo_data()
 	# fill_excel_with_homo_lumo_data()
-	# fill_database_with_singlet_triplet_data()
-	# fill_excel_with_singlet_triplet_data()
-	fill_database_with_socme_data()
+	fill_database_with_singlet_triplet_data()
+	fill_excel_with_singlet_triplet_data()
+	# fill_database_with_socme_data()
 	# fill_excel_with_socme_data()
 	# fill_database_with_multiwfn_data()
 	# fill_excel_with_multiwfn_data()

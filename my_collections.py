@@ -82,7 +82,7 @@ FUNCTIONALS_DICT = {
 }
 
 HOMO_LUMO_PARAMETERS = ('homo_energy', 'lumo_energy', 'homo_lumo_gap')
-SINGLET_TRIPLET_PARAMETERS = ('S1_energy', 'T1_energy', 'delta_E_S1_T1', 'delta_E_S2_T1', 'delta_E_S1_S2', 'delta_E_T1_T2')
+SINGLET_TRIPLET_PARAMETERS = ('S1_energy', 'T1_energy', 'S2_energy', 'T2_energy', 'delta_E_S1_T1', 'delta_E_S2_T1', 'delta_E_S1_S2', 'delta_E_T1_T2')
 SOCME_PARAMETERS = ('T1_S1_SOCME', 'T1_S2_SOCME', 'T1_S1_kRISC', 'T1_S2_kRISC')
 MULTIWFN_PARAMETERS = ('distance', 'integral_norm', 'integral_square', 'S1_HEOE', 'S2_HEOE', 'T1_HEOE', 'T2_HEOE')
 PARAMETERS_DICT = {
@@ -90,7 +90,9 @@ PARAMETERS_DICT = {
 'lumo_energy' : "LUMO energies, eV",
 'homo_lumo_gap' : "HOMO-LUMO gaps, eV",
 'S1_energy' : "S1 energies, eV",
+'S2_energy' : "S2 energies, eV",
 'T1_energy' : "T1 energies, eV",
+'T2_energy' : "T2 energies, eV",
 'delta_E_S1_T1' : "ΔE(S1-T1), eV",
 'delta_E_S2_T1' : "ΔE(S2-T1), eV",
 'delta_E_S1_S2' : "ΔE(S2-S1), eV",
